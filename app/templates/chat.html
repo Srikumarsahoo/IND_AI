@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Chat</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2>🤖 AI Chat Assistant</h2>
+      <div>
+        <span>👋 {{ user }}</span>
+        <a href="/logout"><button>Logout</button></a>
+      </div>
+    </div>
+
+    <div id="chat-box" class="chat-box"></div>
+
+    <form id="chat-form">
+      <select id="model-select" name="model">
+        <option value="mistralai/mistral-7b-instruct">🦙 Mistral 7B</option>
+        <option value="openai/gpt-3.5-turbo">🧠 GPT-3.5 Turbo</option>
+        <option value="anthropic/claude-3-haiku">🤖 Claude 3 Haiku</option>
+      </select>
+      <input type="text" id="user-input" name="user_message" placeholder="Ask me..." required autocomplete="off">
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
