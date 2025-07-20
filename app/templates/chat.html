@@ -2,30 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>AI Chat</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <title>IND_AI Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body>
-  <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h2>🤖 AI Chat Assistant</h2>
-      <div>
-        <span>👋 {{ user }}</span>
-        <a href="/logout"><button>Logout</button></a>
+<body class="bg-gray-100 min-h-screen font-sans">
+  <div class="max-w-3xl mx-auto p-4">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow mb-4">
+      <h2 class="text-xl font-semibold text-gray-800">🤖 AI Chat Assistant</h2>
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-gray-600">👋 {{ user }}</span>
+        <a href="/logout">
+          <button class="bg-red-500 text-white text-sm px-4 py-2 rounded hover:bg-red-600">Logout</button>
+        </a>
       </div>
     </div>
 
-    <div id="chat-box" class="chat-box"></div>
+    <!-- Chat Box -->
+    <div id="chat-box" class="bg-white border border-gray-300 rounded-lg p-4 h-96 overflow-y-auto space-y-3 shadow-inner">
+      <!-- Chat messages will appear here -->
+    </div>
 
-    <form id="chat-form">
-      <select id="model-select" name="model">
+    <!-- Form -->
+    <form id="chat-form" class="flex gap-2 mt-4 items-center">
+      <select id="model-select" name="model" class="p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <option value="mistralai/mistral-7b-instruct">🦙 Mistral 7B</option>
         <option value="openai/gpt-3.5-turbo">🧠 GPT-3.5 Turbo</option>
         <option value="anthropic/claude-3-haiku">🤖 Claude 3 Haiku</option>
       </select>
-      <input type="text" id="user-input" name="user_message" placeholder="Ask me..." required autocomplete="off">
-      <button type="submit">Send</button>
+      <input type="text" id="user-input" name="user_message" placeholder="Ask me..." required autocomplete="off"
+        class="flex-1 px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Send</button>
     </form>
+
   </div>
 
   <script src="/static/script.js"></script>
