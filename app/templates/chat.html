@@ -1,19 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
-  <title>IND_AI Chat</title>
+  <title>{{ chat_title or "IND_AI Chat" }}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans">
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans text-gray-800 dark:text-white">
   <div class="max-w-3xl mx-auto p-4">
-    
     <!-- Header -->
-    <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow mb-4">
-      <h2 class="text-xl font-semibold text-gray-800">🤖 AI Chat Assistant</h2>
+    <div class="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4">
+      <h2 class="text-xl font-semibold">🤖 AI Chat Assistant</h2>
       <div class="flex items-center gap-4">
-        <span class="text-sm text-gray-600">👋 {{ user }}</span>
+        <span class="text-sm">👋 {{ user }}</span>
+        <a href="/history"><button class="text-sm border px-2 py-1 rounded dark:text-white">🕑 History</button></a>
+        <button id="dark-toggle" class="text-sm border px-2 py-1 rounded dark:text-white">🌙 Toggle</button>
         <a href="/logout">
           <button class="bg-red-500 text-white text-sm px-4 py-2 rounded hover:bg-red-600">Logout</button>
         </a>
@@ -21,24 +22,59 @@
     </div>
 
     <!-- Chat Box -->
-    <div id="chat-box" class="bg-white border border-gray-300 rounded-lg p-4 h-96 overflow-y-auto space-y-3 shadow-inner">
-      <!-- Chat messages will appear here -->
+    <div id="chat-box" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-4 h-96 overflow-y-auto space-y-3 shadow-inner">
+      {% for role, content in messages %}
+      <div class="flex {% if role == 'user' %}justify-end{% else %}justify-start{% endif %}">
+        <div class="px-4 py-2 max-w-[80%] rounded-xl text-sm shadow prose prose-sm dark:prose-invert
+          {% if role == 'user' %}
+            bg-blue-600 text-white rounded-br-none
+          {% else %}
+            bg-gray-100 dark:bg-gray-700 dark:text-white text-gray-900 rounded-bl-none
+          {% endif %}">
+          {% if role == 'assistant' %}
+            <span>{{ content | safe }}</span>
+          {% else %}
+            <span>{{ content }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
     </div>
 
     <!-- Form -->
     <form id="chat-form" class="flex gap-2 mt-4 items-center">
-      <select id="model-select" name="model" class="p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <select id="model-select" name="model"
+        class="p-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
         <option value="mistralai/mistral-7b-instruct">🦙 Mistral 7B</option>
         <option value="openai/gpt-3.5-turbo">🧠 GPT-3.5 Turbo</option>
         <option value="anthropic/claude-3-haiku">🤖 Claude 3 Haiku</option>
       </select>
       <input type="text" id="user-input" name="user_message" placeholder="Ask me..." required autocomplete="off"
-        class="flex-1 px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Send</button>
+        class="flex-1 px-4 py-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <button type="submit"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Send</button>
     </form>
-
   </div>
 
+  <!-- Dark Mode Script -->
+  <script>
+    const root = document.documentElement;
+    const toggle = document.getElementById("dark-toggle");
+    function applyTheme() {
+      const theme = localStorage.getItem("theme");
+      theme === "dark" ? root.classList.add("dark") : root.classList.remove("dark");
+    }
+    toggle.addEventListener("click", () => {
+      const isDark = root.classList.toggle("dark");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    });
+    applyTheme();
+  </script>
+
+  <!-- JS Logic -->
+ <script>
+   var session_id = "{{ session_id | default('null') }}";
+</script>
   <script src="/static/script.js"></script>
 </body>
 </html>

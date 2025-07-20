@@ -3,14 +3,14 @@ const chatBox = document.getElementById("chat-box");
 const userInput = document.getElementById("user-input");
 const modelSelect = document.getElementById("model-select");
 
+// Event listener for sending message
 chatForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-
   const message = userInput.value.trim();
   const model = modelSelect.value;
   if (!message) return;
 
-  // Show user bubble
+  // Show user message
   addMessage("user", message);
   userInput.value = "";
 
@@ -18,7 +18,11 @@ chatForm.addEventListener("submit", async (e) => {
   const loadingBubble = addMessage("assistant", "Typing...");
 
   try {
-    const response = await fetch("/chat", {
+    // USE session-based API endpoint if using chat history feature
+    const url = typeof session_id !== "undefined" && session_id !== null
+      ? `/chat/${session_id}`
+      : "/chat";
+    const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
@@ -36,7 +40,7 @@ chatForm.addEventListener("submit", async (e) => {
   }
 });
 
-// Adds a bubble for user or assistant with Markdown rendering for assistant
+// Add a new message bubble
 function addMessage(role, text) {
   const wrapper = document.createElement("div");
   wrapper.classList.add("flex", "mb-3");
@@ -49,7 +53,7 @@ function addMessage(role, text) {
 
   const bubble = document.createElement("div");
 
-  // Apply markdown parsing only to assistant
+  // Use Markdown for assistant replies
   if (role === "assistant") {
     bubble.innerHTML = marked.parse(text);
   } else {
@@ -57,15 +61,18 @@ function addMessage(role, text) {
   }
 
   bubble.className = `
-    prose prose-sm px-4 py-2 max-w-[80%] text-sm rounded-xl
-    ${role === "user" 
-      ? "bg-blue-600 text-white rounded-br-none" 
-      : "bg-gray-100 text-gray-900 rounded-bl-none"}
+    px-4 py-2 max-w-[80%] rounded-xl text-sm shadow
+    prose prose-sm dark:prose-invert
+    ${role === "user"
+      ? "bg-blue-600 text-white rounded-br-none"
+      : "bg-gray-100 dark:bg-gray-700 dark:text-white text-gray-900 rounded-bl-none"}
   `;
 
   wrapper.appendChild(bubble);
   chatBox.appendChild(wrapper);
-  chatBox.scrollTop = chatBox.scrollHeight;
+
+  // Scroll to bottom smoothly
+  chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "smooth" });
 
   return wrapper;
 }
