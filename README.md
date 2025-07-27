@@ -112,16 +112,9 @@ HuggingFace Transformers
 💬 Feedback & Contributions
 If you find this useful, give a ⭐ star on GitHub. Contributions, ideas, and improvements are always welcome! Fork and create a PR.
 
-Built with 💡 by Your Name
+Built with 💡 by Srikumar sahoo
 
 yaml
 Copy
 Edit
 
----
-
-### ✅ Next Steps
-
-Would you like a `LICENSE` file (MIT) and `requirements.txt` template as well?
-
-Let me know your GitHub username so I can personalize the footer!
