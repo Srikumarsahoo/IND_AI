@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <title>IND_AI – Intelligent Chat for Everyone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="/static/logo_ai.png" />
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="w-full px-6 py-3 bg-white dark:bg-gray-800 shadow flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <img src="/static/logo_ai.png" alt="IND_AI Logo" class="h-10 w-10 rounded-full shadow" onerror="this.style.display='none'">
+      <span class="ml-2 text-xl font-bold tracking-tight text-blue-600 dark:text-blue-400">IND_AI</span>
+    </div>
+    <nav class="flex gap-3">
+      <a href="/login" class="px-4 py-2 rounded font-medium text-gray-700 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-blue-700 dark:hover:text-white transition">Login</a>
+      <a href="/signup" class="px-4 py-2 rounded font-medium text-white bg-blue-600 hover:bg-blue-700 transition shadow">Sign Up</a>
+    </nav>
+  </header>
+
+  <!-- Main Hero Section -->
+  <main class="flex-1 flex items-center justify-center flex-col px-6">
+    <section class="max-w-2xl w-full pt-12 text-center">
+      <div class="mb-8">
+        <img src="/static/logo_ai.png" alt="IND_AI Logo Big" class="mx-auto mb-6 h-20 w-20 rounded-full shadow-lg" onerror="this.style.display='none'">
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-2">Welcome to <span class="text-blue-600 dark:text-blue-400">IND_AI</span></h1>
+        <p class="mt-3 text-lg md:text-xl text-gray-600 dark:text-gray-300">
+          Experience the next generation of AI-powered chat.<br>
+          <span class="font-semibold text-blue-600 dark:text-blue-400">150 <span class="animate-pulse">FREE</span> credits</span> instantly when you join!
+        </p>
+        <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="/signup" class="px-7 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow-lg">Get 150 Free Credits</a>
+          <a href="/login" class="px-7 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-white text-gray-900 hover:bg-blue-100 dark:hover:bg-blue-800 font-medium transition shadow">Already have an account?</a>
+        </div>
+      </div>
+      <!-- Features -->
+      <div class="mt-10 grid gap-6 md:grid-cols-3">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-left">
+          <div class="text-3xl mb-3">🤖</div>
+          <h3 class="font-bold text-xl mb-1">Human-like AI Chat</h3>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">Chat naturally with advanced AI, get instant knowledge, code, and creativity boosts – 24/7.</p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-left">
+          <div class="text-3xl mb-3">💡</div>
+          <h3 class="font-bold text-xl mb-1">Personalized for You</h3>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">IND_AI remembers your preferences and context, making every conversation more relevant.</p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-left">
+          <div class="text-3xl mb-3">🚀</div>
+          <h3 class="font-bold text-xl mb-1">No cost to start</h3>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">Claim 150 free credits instantly on signup. Upgrade later – no credit card needed to begin!</p>
+        </div>
+      </div>
+      <div class="mt-16 text-center">
+        <span class="block text-lg text-blue-600 dark:text-blue-400 font-semibold">Your ideas, <span class="underline underline-offset-4 decoration-2 decoration-blue-600">supercharged</span></span>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-14 py-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto flex flex-col-reverse md:flex-row items-center justify-between gap-2 px-6">
+      <p class="text-xs text-gray-700 dark:text-gray-400">&#169; {{ year or '2024' }} IND_AI. All rights reserved.</p>
+      <nav class="flex gap-3 text-sm">
+        <a href="mailto:support@indai.com" class="hover:underline text-blue-600 dark:text-blue-400">Contact</a>
+        <a href="#" class="hover:underline text-blue-600 dark:text-blue-400">Terms</a>
+        <a href="#" class="hover:underline text-blue-600 dark:text-blue-400">Privacy</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- Optional: Dark mode auto-on -->
+  <script>
+    // On first visit, use dark mode by default
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches))
+      document.documentElement.classList.add('dark');
+  </script>
+</body>
+</html>

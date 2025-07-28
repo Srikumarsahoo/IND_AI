@@ -9,25 +9,22 @@ import sqlite3
 import openai
 from app import auth
 from itsdangerous import URLSafeSerializer
-
+from datetime import datetime
 
 # --- Load environment variables ---
 load_dotenv()
 openai.api_key = os.getenv("OPENROUTER_API_KEY")
 openai.api_base = "https://openrouter.ai/api/v1"
 
-
 # --- Constants ---
 DB_FILE = "users.db"
 SECRET_KEY = "supersecretkey"
 serializer = URLSafeSerializer(SECRET_KEY)
 
-
 # --- Initialize FastAPI ---
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
-
 
 # --- Enable CORS ---
 app.add_middleware(
@@ -38,9 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 auth.init_db()  # initialize user/group tables
-
 
 # --- Create DB tables for chat sessions/messages ---
 def init_chat_db():
@@ -66,9 +61,7 @@ def init_chat_db():
         ''')
         conn.commit()
 
-
 init_chat_db()
-
 
 # --- Auth helper to get user from session cookie ---
 def get_current_user(request: Request):
@@ -77,41 +70,39 @@ def get_current_user(request: Request):
         return auth.decode_session(session_token)
     return None
 
+# ---------------------------
+# HOMEPAGE ROUTE
+# ---------------------------
+
+@app.get("/", response_class=HTMLResponse)
+async def homepage(request: Request):
+    # Render homepage (not chat, not login!) with request and year context
+    return templates.TemplateResponse("home.html", {
+        "request": request,
+        "year": datetime.now().year
+    })
 
 # ---------------------------
 # 👤 AUTH ROUTES
 # ---------------------------
 
-
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    user = get_current_user(request)
-    if not user:
-        return RedirectResponse("/login", status_code=status.HTTP_302_FOUND)
-    return RedirectResponse("/chat/new", status_code=status.HTTP_302_FOUND)
-
-
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-
 @app.get("/signup", response_class=HTMLResponse)
 async def signup_page(request: Request):
     return templates.TemplateResponse("signup.html", {"request": request})
-
 
 @app.post("/signup")
 async def signup(request: Request):
     form = await request.form()
     username = form.get("username")
     password = form.get("password")
-    group_name = form.get("group_name")  # Ensure your signup HTML has this field
-
+    group_name = form.get("group_name")  # Ensure your signup HTML uses name="group_name"
     if auth.register_user(username, password, group_name):
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
     return HTMLResponse("Signup failed. User may already exist.", status_code=400)
-
 
 @app.post("/login")
 async def login(request: Request, response: Response, username: str = Form(...), password: str = Form(...)):
@@ -126,18 +117,15 @@ async def login(request: Request, response: Response, username: str = Form(...),
         "error": "Invalid username or password."
     }, status_code=401)
 
-
 @app.get("/logout")
 async def logout():
     res = RedirectResponse("/login", status_code=status.HTTP_302_FOUND)
     res.delete_cookie("session")
     return res
 
-
 # ---------------------------
 # 💬 CHAT ROUTES
 # ---------------------------
-
 
 @app.get("/chat/new")
 async def new_chat(request: Request):
@@ -151,31 +139,26 @@ async def new_chat(request: Request):
         conn.commit()
     return RedirectResponse(f"/chat/{session_id}", status_code=status.HTTP_303_SEE_OTHER)
 
-
 @app.get("/chat/{session_id}", response_class=HTMLResponse)
 async def chat_room(request: Request, session_id: int):
     user = get_current_user(request)
     if not user:
         return RedirectResponse("/login", status_code=status.HTTP_302_FOUND)
-
     with sqlite3.connect(DB_FILE) as conn:
         c = conn.cursor()
-
         # Fetch all user sessions for sidebar
         c.execute("SELECT session_id, title, created_at FROM chat_sessions WHERE username=? ORDER BY created_at DESC", (user["username"],))
         sessions = c.fetchall()
-
         # Fetch current session title, validate ownership
         c.execute("SELECT title FROM chat_sessions WHERE session_id=? AND username=?", (session_id, user["username"]))
         row = c.fetchone()
         if not row:
             return RedirectResponse("/chat/new", status_code=status.HTTP_302_FOUND)
         chat_title = row[0] or "Chat"
-
         # Fetch messages
         c.execute("SELECT role, content FROM chat_messages WHERE session_id=? ORDER BY created_at", (session_id,))
-        messages = [(role, content, 'perosnal') for (role, content) in c.fetchall()]
-
+        # Fix: use 'personal' not 'perosnal'
+        messages = [(role, content, 'personal') for (role, content) in c.fetchall()]
     return templates.TemplateResponse("chat.html", {
         "request": request,
         "user": user["username"],
@@ -185,61 +168,48 @@ async def chat_room(request: Request, session_id: int):
         "sessions": sessions
     })
 
-
 @app.post("/chat/{session_id}")
 async def chat(session_id: int, request: Request, user_message: str = Form(...), model: str = Form(...)):
     user = get_current_user(request)
     if not user:
         return JSONResponse({"reply": "Unauthorized"}, status_code=401)
-
     with sqlite3.connect(DB_FILE) as conn:
         c = conn.cursor()
         c.execute("SELECT role, content FROM chat_messages WHERE session_id=? ORDER BY id", (session_id,))
         history = [{"role": r, "content": t} for r, t in c.fetchall()]
-
     if not history or history[0]["role"] != "system":
         history.insert(0, {"role": "system", "content": "You are a helpful assistant."})
-
     history.append({"role": "user", "content": user_message})
-
     try:
         response = openai.ChatCompletion.create(
             model=model,
             messages=history
         )
         reply = response.choices[0].message.content.strip()
-
         with sqlite3.connect(DB_FILE) as conn:
             c = conn.cursor()
             # Save conversation messages
             c.execute("INSERT INTO chat_messages (session_id, role, content) VALUES (?, ?, ?)", (session_id, "user", user_message))
             c.execute("INSERT INTO chat_messages (session_id, role, content) VALUES (?, ?, ?)", (session_id, "assistant", reply))
-
             # Auto-update session title if still "New Chat"
             c.execute("SELECT title FROM chat_sessions WHERE session_id=?", (session_id,))
             title_row = c.fetchone()
             if title_row and (title_row[0] == "New Chat" or title_row[0] is None):
                 short_title = user_message.strip().split('\n')[0][:40].replace("\r", "").replace("\n", "")
                 c.execute("UPDATE chat_sessions SET title=? WHERE session_id=?", (short_title, session_id))
-
             conn.commit()
-
         return JSONResponse({"reply": reply})
-
     except Exception as e:
         print(f"Chat error: {e}")
         return JSONResponse({"reply": "Something went wrong."})
-
 
 @app.post("/chat/{session_id}/rename")
 async def rename_session(request: Request, session_id: int, title: str = Form(...)):
     user = get_current_user(request)
     if not user:
         return RedirectResponse("/login", status_code=status.HTTP_302_FOUND)
-
     with sqlite3.connect(DB_FILE) as conn:
         c = conn.cursor()
         c.execute("UPDATE chat_sessions SET title=? WHERE session_id=? AND username=?", (title, session_id, user["username"]))
         conn.commit()
-
     return RedirectResponse(f"/chat/{session_id}", status_code=status.HTTP_303_SEE_OTHER)
