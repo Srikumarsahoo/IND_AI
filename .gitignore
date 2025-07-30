@@ -17,3 +17,12 @@ chat_history_*.json
 # Ignore OS files
 .DS_Store
 Thumbs.db
+
+# Ignore Log files
+*.Log
+
+#ignore yaml files
+.*render.yaml
+
+# Ignore .json files
+.*json

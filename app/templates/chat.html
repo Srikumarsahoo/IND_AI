@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <title>{{ chat_title or "Chat" }} - IND_AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Use marked for markdown rendering in assistant replies -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
@@ -13,26 +14,23 @@
 
     <!-- Sidebar -->
     <aside class="w-72 bg-gray-950 border-r border-gray-800 flex flex-col h-screen">
-      <!-- Chats Header -->
       <div class="flex items-center justify-between p-4 pb-2">
         <h2 class="text-xl font-bold text-white">💬 Your Chats</h2>
         <a href="/chat/new" title="Start New Chat">
-          <button
-            class="bg-blue-600 w-8 h-8 flex items-center justify-center text-xl text-white rounded-lg hover:bg-blue-700">+</button>
+          <button class="bg-blue-600 w-8 h-8 flex items-center justify-center text-xl text-white rounded-lg hover:bg-blue-700">+</button>
         </a>
       </div>
-
-      <!-- Chat Sessions List -->
       <nav class="overflow-y-auto flex-1">
         <ul class="space-y-1 px-2">
           {% for sid, title, created in sessions %}
           <li class="group relative">
-            <a href="/chat/{{ sid }}" class="flex items-center px-3 py-2 rounded-lg transition text-sm
-              {% if sid == session_id %}
+            <a href="/chat/{{ sid }}"
+              class="flex items-center px-3 py-2 rounded-lg transition text-sm
+                {% if sid == session_id %}
                 bg-blue-700 text-white font-bold
-              {% else %}
+                {% else %}
                 text-gray-300 hover:bg-blue-800 hover:text-white
-              {% endif %}">
+                {% endif %}">
               <span class="truncate flex-1">
                 {{ title or "Untitled Chat" }}
                 <span class="block text-xs text-gray-400 font-normal">{{ created[:16] }}</span>
@@ -52,8 +50,6 @@
           {% endfor %}
         </ul>
       </nav>
-
-      <!-- Bottom controls -->
       <div class="p-4 border-t border-gray-800 flex items-center gap-2 mt-2">
         <a href="/logout" class="text-xs text-red-400 hover:text-red-200">Logout</a>
         <span class="flex-1"></span>
@@ -79,27 +75,48 @@
         </div>
       </header>
 
+      <!-- Welcome Prompt (shows only if chat is empty) -->
+      {% if not messages or messages|length == 0 %}
+      <div class="text-center py-12 text-gray-400 text-base">
+        <div class="text-3xl mb-4 animate-bounce">✨</div>
+        <div class="font-bold text-lg mb-2">Welcome to IND_AI Chat!</div>
+        <div class="mb-3">Try these to get started:</div>
+        <div class="flex flex-col gap-1 mb-8 items-center">
+          <span class="bg-gray-800 rounded px-3 py-1 max-w-xs inline-block"><b>💡 "Explain quantum computing in simple words!"</b></span>
+          <span class="bg-gray-800 rounded px-3 py-1 max-w-xs inline-block"><b>🚀 "Give me 3 startup business ideas."</b></span>
+          <span class="bg-gray-800 rounded px-3 py-1 max-w-xs inline-block"><b>🤖 "Can you debug this code for me?"</b></span>
+          <span class="bg-gray-800 rounded px-3 py-1 max-w-xs inline-block"><b>📖 "Summarize the latest AI news."</b></span>
+        </div>
+        <span class="opacity-70">Type your question below ⬇️</span>
+      </div>
+      {% endif %}
+
       <!-- Chat History -->
       <div id="chat-box" class="flex-1 p-6 overflow-y-auto bg-gray-900 space-y-3">
         {% for role, content, source in messages %}
-        <div class="flex {% if role == 'user' %} justify-end {% else %} justify-start {% endif %}">
-          <div class="px-4 py-2 max-w-[75%] rounded-lg shadow text-sm
-            {% if role == 'user' %}
-              bg-blue-600 text-white
-            {% else %}
-              {% if source == 'group' %}
-                bg-yellow-700 text-white
-              {% else %}
-                bg-gray-800 text-gray-100
-              {% endif %}
-            {% endif %}">
-            {% if role == 'assistant' %}
-            <span>{{ content | safe }}</span>
-            {% else %}
-            <span>{{ content }}</span>
-            {% endif %}
+        {% if role == 'assistant' %}
+        <div class="flex justify-start">
+          <div class="bg-gradient-to-r from-blue-800 to-blue-700 text-white px-4 py-3 rounded-2xl shadow font-medium max-w-[75%]">
+            <span class="flex items-center gap-2 text-base">
+              🤖 <span class="font-bold uppercase text-xs bg-white/10 px-2 py-1 rounded-lg tracking-wider mr-1">AI</span>
+              <span>{% autoescape true %}{{ content | safe }}{% endautoescape %}</span>
+            </span>
           </div>
         </div>
+        {% elif role == 'user' %}
+        <div class="flex justify-end">
+          <div class="bg-blue-600 text-white px-4 py-3 rounded-2xl shadow max-w-[75%] flex gap-2 items-center">
+            <span class="font-bold uppercase text-xs bg-white/10 px-2 py-1 rounded-lg tracking-wider">You</span>
+            <span class="flex items-center gap-2">🧑‍💻 {{ content }}</span>
+          </div>
+        </div>
+        {% elif source == 'group' %}
+        <div class="flex justify-start">
+          <div class="bg-yellow-700 text-white px-4 py-2 rounded-lg shadow max-w-[75%]">
+            <span class="flex items-center gap-2">👥 <span class="bg-white/10 px-2 py-1 text-xs rounded-lg font-bold">GROUP MEMORY</span> {{ content }}</span>
+          </div>
+        </div>
+        {% endif %}
         {% endfor %}
       </div>
 
@@ -111,9 +128,9 @@
           <option value="openai/gpt-3.5-turbo">🧠 GPT-3.5 Turbo</option>
           <option value="anthropic/claude-3-haiku">🤖 Claude 3 Haiku</option>
         </select>
-        <input type="text" id="user-input" name="user_message" placeholder="Ask me anything..." required autocomplete="off"
-          class="flex-1 px-4 py-2 rounded border border-gray-700 bg-gray-800 text-white focus:outline-none text-sm" />
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">Send</button>
+        <input type="text" id="user-input" name="user_message" placeholder="Type your message..." required autocomplete="off"
+          class="flex-1 px-4 py-2 rounded border border-gray-700 bg-gray-800 text-white focus:outline-none text-base" />
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-base">Send</button>
       </form>
     </main>
   </div>
@@ -141,5 +158,4 @@
   </script>
   <script src="/static/script.js"></script>
 </body>
-
 </html>
